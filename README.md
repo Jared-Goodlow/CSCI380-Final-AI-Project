@@ -83,7 +83,7 @@ The interface colors represent walls, open cells, start, goal, expanded cells, a
 
 - `main.py` - Jared's graphical interface, maze editing, input checking, algorithm selection, and search-result animation.
 - `mazes.py` - Jared's deterministic sample mazes and edge cases.
-- `search.py` - Shared `SearchResult` interface and placeholder functions for Shiva's BFS, DFS, and A* implementations.
+- `search.py` - Shared `SearchResult` interface and placeholder functions for Shiva's DFS and A* implementations.
 - `requirements.txt` - Pygame dependency.
 
 ## Current progress / remaining work
