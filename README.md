@@ -90,6 +90,8 @@ The interface colors represent walls, open cells, start, goal, expanded cells, a
 
 **Interface components present:** Pygame maze display; painting/removing walls; selecting/moving start and goal; loading four sample mazes; algorithm-selection controls; an animation engine for visited cells and routes; display of path length, expanded-cell count, and algorithm runtime when an algorithm returns results.
 
+**BFS implementation:** BFS has been implemented and integrated with the application. It uses a queue to explore maze cells, reconstructs the shortest path when one exists, and records the number of expanded cells and execution time.
+
 **Planned for final submission:** DFS, A*, further testing and performance comparisons, final report and presentation.
 
 ## Suggested manual tests before mid-progress submission
