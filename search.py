@@ -10,6 +10,7 @@ from __future__ import annotations
 import time
 from collections import deque
 from dataclasses import dataclass
+from heapq import heappop, heappush
 
 Cell = tuple[int, int]  # (row, column)
 Grid = list[list[int]]  # 0 means open, 1 means wall
@@ -88,10 +89,66 @@ def bfs(grid: Grid, start: Cell, goal: Cell) -> SearchResult:
 
 
 def dfs(grid: Grid, start: Cell, goal: Cell) -> SearchResult:
-    """Depth-First Search using a stack (final phase)."""
-    raise NotImplementedError("DFS is planned for a later stage of the project.")
+    """Depth-First Search using a LIFO stack."""
+    t0 = time.perf_counter()
+
+    frontier: list[Cell] = [start]
+    parent: dict[Cell, Cell | None] = {start: None}
+    visited_order: list[Cell] = []
+    path: list[Cell] = []
+
+    while frontier:
+        cell = frontier.pop()
+        visited_order.append(cell)
+        if cell == goal:
+            path = _reconstruct_path(parent, goal)
+            break
+
+        # Reverse the neighbor order so the stack explores up, down, left, right.
+        for nxt in reversed(list(_neighbors(grid, cell))):
+            if nxt not in parent:
+                parent[nxt] = cell
+                frontier.append(nxt)
+
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+    return SearchResult(visited_order, path, elapsed_ms)
 
 
 def a_star(grid: Grid, start: Cell, goal: Cell) -> SearchResult:
-    """A* search with Manhattan distance (final phase)."""
-    raise NotImplementedError("A* is planned for a later stage of the project.")
+    """A* search using Manhattan distance and unit movement costs."""
+    t0 = time.perf_counter()
+
+    def heuristic(cell: Cell) -> int:
+        return abs(cell[0] - goal[0]) + abs(cell[1] - goal[1])
+
+    # The counter makes equal-priority entries follow neighbor insertion order.
+    frontier: list[tuple[int, int, Cell]] = []
+    counter = 0
+    heappush(frontier, (heuristic(start), counter, start))
+    parent: dict[Cell, Cell | None] = {start: None}
+    cost_so_far: dict[Cell, int] = {start: 0}
+    expanded: set[Cell] = set()
+    visited_order: list[Cell] = []
+    path: list[Cell] = []
+
+    while frontier:
+        _, _, cell = heappop(frontier)
+        if cell in expanded:
+            continue
+
+        expanded.add(cell)
+        visited_order.append(cell)
+        if cell == goal:
+            path = _reconstruct_path(parent, goal)
+            break
+
+        for nxt in _neighbors(grid, cell):
+            new_cost = cost_so_far[cell] + 1
+            if nxt not in cost_so_far or new_cost < cost_so_far[nxt]:
+                cost_so_far[nxt] = new_cost
+                parent[nxt] = cell
+                counter += 1
+                heappush(frontier, (new_cost + heuristic(nxt), counter, nxt))
+
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+    return SearchResult(visited_order, path, elapsed_ms)

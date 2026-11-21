@@ -83,7 +83,7 @@ The interface colors represent walls, open cells, start, goal, expanded cells, a
 
 - `main.py` - Jared's graphical interface, maze editing, input checking, algorithm selection, and search-result animation.
 - `mazes.py` - Jared's deterministic sample mazes and edge cases.
-- `search.py` - Shared `SearchResult` interface and placeholder functions for Shiva's DFS and A* implementations.
+- `search.py` - Shared `SearchResult` interface and placeholder functions for Shiva's BFS, DFS, and A* implementations.
 - `requirements.txt` - Pygame dependency.
 
 ## Current progress / remaining work
@@ -92,9 +92,9 @@ The interface colors represent walls, open cells, start, goal, expanded cells, a
 
 **BFS implementation:** BFS has been implemented and integrated with the application. It uses a queue to explore maze cells, reconstructs the shortest path when one exists, and records the number of expanded cells and execution time.
 
-**Planned for final submission:** DFS, A*, further testing and performance comparisons, final report and presentation.
+**Planned for final submission:** Further testing and performance comparisons, final report and presentation.
 
-## Suggested manual tests before mid-progress submission
+## Suggested manual tests
 
 1. **Starter:** BFS should reach the goal through openings and display the full route.
 2. **Detour:** BFS should reach the goal without crossing walls.
@@ -102,6 +102,8 @@ The interface colors represent walls, open cells, start, goal, expanded cells, a
 4. **Start = Goal:** BFS should return a single-cell path and zero moves.
 5. **Edited maze:** Add and remove walls, reposition start/goal, then run BFS again.
 6. **Reset:** Run BFS, choose Reset View, and confirm the maze stays unchanged.
+7. **DFS:** Confirm it finds a valid route when one exists; the route need not be shortest.
+8. **A*:** Confirm it finds a shortest route, matching BFS path length on the same maze.
 
 ## Group contributions
 
