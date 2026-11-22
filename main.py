@@ -19,7 +19,7 @@ SCREEN_W, SCREEN_H = 1130, 805
 CELL_SIZE = 27
 GRID_X, GRID_Y = 28, 181
 GRID_W, GRID_H = COLS * CELL_SIZE, ROWS * CELL_SIZE
-SIDE_X, SIDE_Y, SIDE_W, SIDE_H = 735, 175, 365, 591
+SIDE_X, SIDE_Y, SIDE_W, SIDE_H = 735, 175, 365, 614
 FPS = 60
 STEP_INTERVAL = 0.018  # seconds per animated expanded-cell/path step
 
@@ -67,6 +67,8 @@ class MazeApp:
         self.start: Cell = (0, 0)
         self.goal: Cell = (0, 0)
         self.result: SearchResult | None = None
+        # Results from all algorithms on the current, unchanged maze.
+        self.comparison: dict[str, SearchResult] = {}
         self.reveal_visited = 0
         self.reveal_path = 0
         self.animating = False
@@ -83,7 +85,7 @@ class MazeApp:
         for i, label in enumerate(("BFS", "DFS", "A*")):
             buttons.append(Button(pygame.Rect(754 + i * 110, 243, 99, 40), label, "algorithm", label))
         for i, label in enumerate(PRESET_NAMES):
-            buttons.append(Button(pygame.Rect(754, 388 + i * 39, 326, 34), f"{i + 1}.  {label}", "preset", i))
+            buttons.append(Button(pygame.Rect(754, 380 + i * 37, 326, 34), f"{i + 1}.  {label}", "preset", i))
         buttons.extend(
             (
                 Button(pygame.Rect(754, 563, 158, 43), "Run Search", "run"),
@@ -111,11 +113,13 @@ class MazeApp:
         self.start = preset.start
         self.goal = preset.goal
         self.clear_search_display()
+        self.comparison.clear()  # A new maze invalidates previous measurements.
         self.set_status(f"Loaded {preset.name}. Choose an algorithm, or edit the maze.")
 
     def clear_walls(self) -> None:
         self.grid = [[0] * COLS for _ in range(ROWS)]
         self.clear_search_display()
+        self.comparison.clear()
         self.set_status("All walls removed. Start and goal cells were preserved.")
 
     def _cell_at(self, mouse_pos: tuple[int, int]) -> Cell | None:
@@ -136,22 +140,25 @@ class MazeApp:
             if self.grid[row][col] != value:
                 self.grid[row][col] = value
                 self.clear_search_display()
+                self.comparison.clear()  # Wall edits invalidate earlier results.
         elif mode == "Erase":
             if self.grid[row][col] == 1:
                 self.grid[row][col] = 0
                 self.clear_search_display()
-        elif mode == "Start":
+                self.comparison.clear()
+        elif mode in ("Start", "Goal"):
             if self.grid[row][col] == 1:
-                self.grid[row][col] = 0
-            self.start = cell
-            self.clear_search_display()
-            self.set_status(f"Start moved to row {row}, column {col}.")
-        elif mode == "Goal":
-            if self.grid[row][col] == 1:
-                self.grid[row][col] = 0
-            self.goal = cell
-            self.clear_search_display()
-            self.set_status(f"Goal moved to row {row}, column {col}.")
+                self.set_status(f"Cannot place {mode.lower()} on a wall. Erase it first.", NOTICE)
+                return
+            previous = self.start if mode == "Start" else self.goal
+            if cell != previous:
+                if mode == "Start":
+                    self.start = cell
+                else:
+                    self.goal = cell
+                self.clear_search_display()
+                self.comparison.clear()  # Endpoint edits change the problem.
+            self.set_status(f"{mode} moved to row {row}, column {col}.")
 
     def _on_mouse_down(self, event: pygame.event.Event) -> None:
         if event.button == 1:
@@ -197,7 +204,7 @@ class MazeApp:
             self.run_search()
         elif button.action == "reset":
             self.clear_search_display()
-            self.set_status("Visualization cleared; maze layout is unchanged.")
+            self.set_status("Path animation cleared; comparison results kept for this maze.")
         elif button.action == "clear":
             self.clear_walls()
 
@@ -245,6 +252,7 @@ class MazeApp:
             return
 
         self.result = result
+        self.comparison[self.algorithm] = result  # Remember for side-by-side comparison.
         self.animating = bool(result.visited_order or result.path)
         if not result.path:
             self.set_status(f"{self.algorithm}: no route found. {result.expanded_count} cells expanded.", NOTICE)
@@ -324,18 +332,30 @@ class MazeApp:
         pygame.draw.rect(self.screen, PANEL, pygame.Rect(SIDE_X, SIDE_Y, SIDE_W, SIDE_H), border_radius=12)
         self._text("SEARCH ALGORITHM", 754, 192, WHITE, self.h2_font)
         self._text("Implemented by the search.py module", 754, 220, MUTED, self.small_font)
-        self._text("BFS is the mid-progress integration target.", 754, 297, MUTED, self.small_font)
-        self._text("DFS and A* are planned for the final version.", 754, 317, MUTED, self.small_font)
-        self._text("SAMPLE MAZES", 754, 353, WHITE, self.h2_font)
-        self._text("RUN & RESET", 754, 529, WHITE, self.h2_font)
-        self._text("SEARCH STATISTICS", 754, 666, WHITE, self.h2_font)
-        if self.result is None:
-            self._text("Moves: --    Expanded: --", 754, 697, MUTED, self.font)
-            self._text("Algorithm time: -- ms", 754, 725, MUTED, self.font)
-        else:
-            move_count = str(self.result.path_length) if self.result.path else "No path"
-            self._text(f"Moves: {move_count}    Expanded: {self.result.expanded_count}", 754, 697, WHITE, self.font)
-            self._text(f"Algorithm time: {self.result.elapsed_ms:.3f} ms", 754, 725, WHITE, self.font)
+        self._text("BFS: queue  |  DFS: stack  |  A*: heuristic", 754, 297, MUTED, self.small_font)
+        self._text("Choose an algorithm, then Run Search.", 754, 317, MUTED, self.small_font)
+        self._text("SAMPLE MAZES", 754, 348, WHITE, self.h2_font)
+        self._text("RUN & RESET", 754, 535, WHITE, self.h2_font)
+
+        self._text("ALGORITHM COMPARISON", 754, 665, WHITE, self.h2_font)
+        self._text("Algo", 754, 696, MUTED, self.small_font)
+        self._text("Moves", 820, 696, MUTED, self.small_font)
+        self._text("Expanded", 882, 696, MUTED, self.small_font)
+        self._text("Time (ms)", 990, 696, MUTED, self.small_font)
+        for i, name in enumerate(("BFS", "DFS", "A*")):
+            row_y = 718 + i * 21
+            result = self.comparison.get(name)
+            color = WHITE if name == self.algorithm else MUTED
+            self._text(name, 754, row_y, color, self.small_font)
+            if result is None:
+                moves, expanded, elapsed = "--", "--", "--"
+            else:
+                moves = str(result.path_length) if result.path else "No path"
+                expanded = str(result.expanded_count)
+                elapsed = f"{result.elapsed_ms:.3f}"
+            self._text(moves, 820, row_y, color, self.small_font)
+            self._text(expanded, 882, row_y, color, self.small_font)
+            self._text(elapsed, 990, row_y, color, self.small_font)
 
     def _draw_bottom(self) -> None:
         self._text("STATUS", 28, 671, WHITE, self.h2_font)
@@ -360,7 +380,7 @@ class MazeApp:
     def draw(self) -> None:
         self.screen.fill(BG)
         self._text("INTERACTIVE MAZE SOLVER", 28, 20, WHITE, self.title_font)
-        self._text("CSCI 380  /  Python + Pygame  /  Mid-progress project", 28, 66, MUTED, self.font)
+        self._text("CSCI 380  /  Python + Pygame  /  Final project", 28, 66, MUTED, self.font)
         self._text("EDIT MAZE", 28, 87, WHITE, self.h2_font)
         self._text("Green = start     Red = goal     Blue = explored     Yellow = route", 526, 125, MUTED, self.small_font)
         self._draw_grid()
@@ -405,7 +425,7 @@ class MazeApp:
                         self.run_search()
                     elif key == pygame.K_r:
                         self.clear_search_display()
-                        self.set_status("Visualization cleared; maze layout unchanged.")
+                        self.set_status("Path animation cleared; comparison results kept for this maze.")
                     elif key == pygame.K_c:
                         self.clear_walls()
             self._update_animation(dt)

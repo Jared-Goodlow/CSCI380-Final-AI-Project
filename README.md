@@ -2,15 +2,15 @@
 
 **Course:** CSCI 380 - Artificial Intelligence  
 **Team:** Jared Goodlow and Shiva Patel  
-**Status:** Mid-progress Report
+**Status:** Core Application Implemented and Verified
 
-This project is a Python/Pygame application for comparing how BFS, DFS, and A* search through grid mazes. It uses **four-direction movement**, **unit movement costs**, and grid cells represented by `0` (open) and `1` (wall). The core search logic will be written in Python, not supplied by a maze-solving library.
+This project is a Python/Pygame application for comparing how Breadth-First Search (BFS), Depth-First Search (DFS), and A* search through two-dimensional grid mazes. It uses **four-direction movement**, **unit movement costs**, and grid cells represented by `0` (open) and `1` (wall). Users can select a sample maze or edit the grid, place start and goal cells, choose a search algorithm, and watch the explored cells and final route appear on screen. The application also compares path length (moves), expanded-cell count, and algorithm execution time across the three methods on the same maze. The core search logic is written in Python, the graphical interface is supplied by Pygame, and this program does not use a maze-solving library. 
 
 ## Requirements
 
 - **Python 3.14 recommended** 
 - **Pygame Community Edition** (`pygame-ce`), installed from `requirements.txt`.
-- A desktop computer able to display a Pygame window. No external maze-solving package is required.
+- No external maze-solving package is required.
 
 **Important:** The dependency is `pygame-ce`, but the code still correctly uses `import pygame`. Avoid installing the older `pygame` package in the same environment. Python 3.15 previously caused a build error with the original `pygame` package; the working configuration uses Python 3.14 and `pygame-ce`.
 
@@ -33,7 +33,7 @@ py -3.14 -m venv .venv
 - The third starts the program (use this on subsequent runs).
 - **No activation command is needed**: these commands explicitly use the environment's Python executable.
 
-If `py -3.14` reports that the version is unavailable, install Python 3.14 or adjust the command to a compatible installed Python version. Check installed versions with `py -0p`.
+If `py -3.14` reports that the version is unavailable, install Python 3.14 or adjust the command to a compatible installed Python version. 
 
 ### macOS / Linux
 
@@ -45,7 +45,7 @@ python3 -m venv .venv
 .venv/bin/python main.py
 ```
 
-Python and Pygame availability vary by operating system and Python version. The documented, confirmed working environment for this project is Windows with Python 3.14 and `pygame-ce`.
+Python and Pygame availability vary by operating system and Python version. The documented and confirmed working environment for this project is Windows with Python 3.14 and `pygame-ce`.
 
 ### VS Code interpreter selection (optional)
 
@@ -68,48 +68,42 @@ If VS Code underlines `import pygame` even though the application runs:
 | Control | Action |
 |---|---|
 | Select **Walls**, then left-click/drag | Add walls, or click an existing wall to erase it |
-| Select **Start** or **Goal**, then left-click | Move the relevant endpoint |
+| Select **Start** or **Goal**, then left-click | Move the relevant endpoint to an open cell (walls are rejected) |
 | Select **Erase** or right-click/drag | Remove walls |
 | **1**, **2**, **3**, **4** | Load sample mazes (Starter, Detour, No Route, Start = Goal) |
 | **B**, **D**, **A** | Choose BFS, DFS, or A* |
 | **Space** or **Run Search** | Execute the selected algorithm |
-| **R** or **Reset View** | Hide previous search results without changing the maze |
+| **R** or **Reset View** | Clear the displayed route and exploration while keeping the maze and comparison results |
 | **C** or **Clear Walls** | Remove all walls |
 | **Esc** | Quit |
 
-The interface colors represent walls, open cells, start, goal, expanded cells, and final route. Search time must measure **only the algorithm**, excluding animation.
+The interface colors represent walls, open cells, start, goal, expanded cells, and final route. Search time measures **only the algorithm**, excluding animation.
 
 ## Project files
 
 - `main.py` - Jared's graphical interface, maze editing, input checking, algorithm selection, and search-result animation.
 - `mazes.py` - Jared's deterministic sample mazes and edge cases.
-- `search.py` - Shared `SearchResult` interface and placeholder functions for Shiva's BFS, DFS, and A* implementations.
+- `search.py` - Shiva's implemented BFS, DFS, and A* algorithms and the shared `SearchResult` interface.
 - `requirements.txt` - Pygame dependency.
+- `.gitignore` - Excludes generated environments and Python cache files.
+- `LICENSE` - Repository License (MIT)
 
-## Current progress / remaining work
+## Current Progress
 
-**Interface components present:** Pygame maze display; painting/removing walls; selecting/moving start and goal; loading four sample mazes; algorithm-selection controls; an animation engine for visited cells and routes; display of path length, expanded-cell count, and algorithm runtime when an algorithm returns results.
+**Completed to Date:** The core maze-solving application has been implemented and the three search algorithms have been integrated into the Pygame interface. Jared completed the interactive grid, wall-editing and endpoint controls, four sample mazes, animated exploration and routes, input validation that rejects blocked endpoints, and a comparison display. Shiva completed BFS, DFS, and A*, including route reconstruction and measurement of expanded cells and execution time. Users can run each algorithm on the same maze, view its results, reset the visualization without changing the maze, and compare the algorithms' statistics. Changing the maze or endpoints clears outdated comparison results. 
 
-**BFS implementation:** BFS has been implemented and integrated with the application. It uses a queue to explore maze cells, reconstructs the shortest path when one exists, and records the number of expanded cells and execution time.
+**Implemented Search Algorithms:**
+- **BFS:** Uses a queue to explore cells level by level and find a shortest route with equal movement costs.
+- **DFS:** Uses a stack to explore a branch before backtracking; its route may be longer than the shortest route.
+- **A*:** Uses a priority queue and Manhattan-distance heuristic to find a shortest route on the four-direction, equal-cost grid.
 
-**Planned for final submission:** Further testing and performance comparisons, final report and presentation.
-
-## Suggested manual tests
-
-1. **Starter:** BFS should reach the goal through openings and display the full route.
-2. **Detour:** BFS should reach the goal without crossing walls.
-3. **No Route:** BFS should report no route and an empty `path`.
-4. **Start = Goal:** BFS should return a single-cell path and zero moves.
-5. **Edited maze:** Add and remove walls, reposition start/goal, then run BFS again.
-6. **Reset:** Run BFS, choose Reset View, and confirm the maze stays unchanged.
-7. **DFS:** Confirm it finds a valid route when one exists; the route need not be shortest.
-8. **A*:** Confirm it finds a shortest route, matching BFS path length on the same maze.
+**Application Features:** Editable grid with start and goal placement, four preset mazes (Starter, Detour, No Route, Start = Goal), color-coded search animations, blocked-endpoint warnings, no-route handling, reset controls, and a comparison table showing moves, expanded cells, and algorithm execution time. Search timing excludes animation delays.
 
 ## Group contributions
 
 | Member | Actual completed work | Estimated contribution |
 |---|---|---|
-| Jared Goodlow | Pygame interface, maze editing controls, visualization, sample/test mazes | **60%** |
-| Shiva Patel | BFS implementation, path reconstruction, testing | **40%** |
+| Jared Goodlow | Built the Pygame interface and editable grid; added wall and endpoint controls, blocked-endpoint validation, four test mazes, explored-cell and route animations, reset behavior, and the three-algorithm comparison display | **60%** |
+| Shiva Patel | Implemented BFS, DFS, and A* using queues, stacks, and a priority queue with Manhattan distance; added path reconstruction, expanded-cell tracking, and execution-time statistics | **40%** |
 | **Total** | | **100%** |
 
