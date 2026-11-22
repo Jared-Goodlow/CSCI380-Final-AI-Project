@@ -103,7 +103,7 @@ The interface colors represent walls, open cells, start, goal, expanded cells, a
 
 | Member | Actual completed work | Estimated contribution |
 |---|---|---|
-| Jared Goodlow | Built the Pygame interface and editable grid; added wall and endpoint controls, blocked-endpoint validation, four test mazes, explored-cell and route animations, reset behavior, and the three-algorithm comparison display | **60%** |
-| Shiva Patel | Implemented BFS, DFS, and A* using queues, stacks, and a priority queue with Manhattan distance; added path reconstruction, expanded-cell tracking, and execution-time statistics | **40%** |
+| Jared Goodlow | Built the Pygame interface and editable grid; added wall and endpoint controls, blocked-endpoint validation, four test mazes, explored-cell and route animations, reset behavior, the three-algorithm comparison display, and wrote the first 3 sections of the project report | **60%** |
+| Shiva Patel | Implemented BFS, DFS, and A* using queues, stacks, and a priority queue with Manhattan distance; added path reconstruction, expanded-cell tracking, execution-time statistics, and wrote the last 3 sections of the project report | **40%** |
 | **Total** | | **100%** |
 
